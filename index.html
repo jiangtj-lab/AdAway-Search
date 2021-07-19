@@ -1,0 +1,94 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.1.5/dist/vue.global.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@1.0.2-beta.55/lib/theme-chalk/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/element-plus@1.0.2-beta.55/lib/index.full.js"></script>
+    <title>Element Plus demo</title>
+  </head>
+  <body>
+    <div id="app">
+      <div>
+      <el-select-v2
+        v-model="value"
+        filterable
+        :options="options"
+        style="width: 100%;"
+        multiple
+        @change="pushState"
+        clearable
+      />
+      </div>
+      <el-card class="box-card" style="width: 100%;">
+        <pre><code>{{ hosts }}</code></pre>
+      </el-card>
+    </div>
+    <script>
+      const App = {
+        data() {
+          return {
+            message: "Hello Element Plus",
+            list: [],
+            map: [],
+            options: [],
+            value: []
+          };
+        },
+        computed: {
+          hosts() {
+            return this.value.map(a => this.map[a]).flat().join("\n");
+          }
+        },
+        created() {
+          let self =this;
+          fetch('https://adaway.org/hosts.txt')
+           .then(function(response) {
+              return response.text();
+            })
+            .then(function(text) {
+              let data = text.split("# [");
+              data.shift();
+              data = data.map(item => {
+                let arr = item.split("]");
+                let host = arr[0];
+                let list = arr[1].split("\n").filter(a => a.length !== 0);
+                return {host, list};
+              });
+              self.list = data;
+              self.map = self.listToMap(data, key => key.host, val => val.list);
+              self.options = data.map(a => ({label: a.host, value: a.host}));
+              return self.map;
+            })
+           .then(function(data) {
+              console.log(data);
+            });
+          let search = window.location.search;
+          if (search.startsWith("?search=")) {
+            this.value = search.substr(8).split("+");
+          }
+        },
+        methods: {
+          listToMap(list, keyCall, valCall) {
+            const map = {};
+            list.forEach(element => {
+              map[keyCall(element)] = valCall(element);
+            });
+            return map;
+          },
+          pushState(map) {
+            let base = window.location.href.split("?")[0];
+            if (this.value.length === 0) {
+              window.history.pushState(null, document.title, base);
+              return;
+            }
+            window.history.pushState(null, document.title, `${base}?search=${this.value.join("+")}`);
+          }
+        }
+      };
+      const app = Vue.createApp(App);
+      app.use(ElementPlus);
+      app.mount("#app");
+    </script>
+  </body>
+</html>
