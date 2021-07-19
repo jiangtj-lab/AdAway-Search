@@ -9,6 +9,10 @@
   </head>
   <body>
     <div id="app">
+      <div v-if="loading">
+        Loading
+      </div>
+      <div v-else>
       <div>
       <el-select-v2
         v-model="value"
@@ -24,12 +28,13 @@
         <pre><code>{{ hosts }}</code></pre>
       </el-card>
       <div style="user-select: none;"><a href="https://github.com/jiangtj-lab/AdAway-Search">Source In GitHub</a></div>
+      </div>
     </div>
     <script>
       const App = {
         data() {
           return {
-            message: "Hello Element Plus",
+            loading: true,
             list: [],
             map: [],
             options: [],
@@ -61,8 +66,8 @@
               self.options = data.map(a => ({label: a.host, value: a.host}));
               return self.map;
             })
-           .then(function(data) {
-              console.log(data);
+           .then(() => {
+              self.loading = false;
             });
           let search = window.location.search;
           if (search.startsWith("?search=")) {
